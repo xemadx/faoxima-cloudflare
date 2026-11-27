@@ -50,7 +50,7 @@ if ($rxDbPass === '') {
     $rxDbPass = ($rxEnvPass !== false) ? (string) $rxEnvPass : '';
 }
 
-if (!(isset($connect) && $connect instanceof mysqli)) {
+if (getenv('FAOXIMA_CLOUDFLARE') !== '1' && !(isset($connect) && $connect instanceof mysqli)) {
     if ($rxDbName !== '' && $rxDbUser !== '') {
         try {
             $rxMysqli = @new mysqli($rxDbHost, $rxDbUser, $rxDbPass, $rxDbName);
@@ -66,7 +66,7 @@ if (!(isset($connect) && $connect instanceof mysqli)) {
     }
 }
 
-if (!(isset($pdo) && $pdo instanceof PDO)) {
+if (getenv('FAOXIMA_CLOUDFLARE') !== '1' && !(isset($pdo) && $pdo instanceof PDO)) {
     if ($rxDbName !== '' && $rxDbUser !== '') {
         try {
             $pdo = new PDO(

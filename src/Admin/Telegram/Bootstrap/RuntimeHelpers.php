@@ -8,7 +8,9 @@ final class RuntimeHelpers
     {
         $cronState = is_array($cronAutoStatus) ? (string) ($cronAutoStatus['status'] ?? 'error') : 'error';
 
-        if ($cronState === 'success') {
+        if ($cronState === 'cloudflare') {
+            $cronSectionText = "⏱ اجرای وظایف زمان‌بندی‌شده هر دقیقه با Cron Trigger کلادفلر انجام می‌شود.";
+        } elseif ($cronState === 'success') {
             $cronSectionText = "➖➖➖➖➖➖➖➖➖➖➖➖\n✅ تابع exec فعال است و Cron Job با موفقیت به‌صورت خودکار تنظیم شد.";
         } else {
             if ($cronState === 'disabled') {

@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "faoxima",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-27",
+  "workers_dev": true,
+  "preview_urls": false,
+  "vars": {
+    "PUBLIC_URL": "https://faoxima.example.com/faoxima"
+  },
+  "triggers": { "crons": ["* * * * *"] },
+  "containers": [{
+    "class_name": "FaoximaContainer",
+    "image": "./Dockerfile",
+    "image_build_context": "..",
+    "instance_type": "standard-1",
+    "max_instances": 1
+  }],
+  "durable_objects": {
+    "bindings": [{ "name": "FAOXIMA", "class_name": "FaoximaContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["FaoximaContainer"] }]
+}

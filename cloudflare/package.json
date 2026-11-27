@@ -1,0 +1,14 @@
+{
+  "name": "faoxima-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "check": "wrangler deploy --dry-run --containers-rollout=none",
+    "deploy": "wrangler deploy",
+    "webhook": "node --env-file-if-exists=.dev.vars ./webhook.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.168.0"
+  }
+}

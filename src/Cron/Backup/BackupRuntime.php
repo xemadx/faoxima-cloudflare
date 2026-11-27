@@ -173,6 +173,12 @@ final class BackupRuntime
             sprintf('%s mysqldump --ssl-mode=DISABLED %s', $envPrefix, $baseArgs),
             sprintf('%s mysqldump --ssl=0 %s', $envPrefix, $baseArgs),
         ];
+        if (getenv('FAOXIMA_CLOUDFLARE') === '1') {
+            $tls = getenv('DB_TLS') === '0'
+                ? '--skip-ssl'
+                : '--ssl-verify-server-cert --ssl-ca=' . escapeshellarg(getenv('SSL_CERT_FILE'));
+            $attempts = [sprintf('%s mariadb-dump --port=%d %s %s', $envPrefix, (int) getenv('DB_PORT'), $tls, $baseArgs)];
+        }
         if ($deadline === null) {
             $deadline = microtime(true) + 240;
         }

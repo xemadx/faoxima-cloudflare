@@ -364,6 +364,10 @@ final class Crontab
     {
         global $domainhosts;
 
+        if (getenv('FAOXIMA_CLOUDFLARE') === '1') {
+            return ['status' => 'cloudflare', 'user' => null];
+        }
+
         if (empty($domainhosts)) {
             $domainhosts = $_SERVER['HTTP_HOST'] ?? '';
         }

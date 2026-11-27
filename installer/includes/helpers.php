@@ -619,7 +619,7 @@ function rx_database_error_message(Throwable $error): string
     return $code > 0 ? $message . ' (کد خطا: ' . $code . ')' : $message;
 }
 
-function rx_table_migrations_verify_ready(array $dbInfo, ?array &$diagnostics = null): bool
+function rx_table_migrations_verify_ready(array $dbInfo, ?array &$diagnostics = null, ?PDO $pdo = null): bool
 {
     $diagnostics = ['missing_tables' => [], 'missing_columns' => [], 'charset_columns' => [], 'missing_indexes' => [], 'non_transactional_tables' => [], 'wallet_schema' => [], 'database_error' => ''];
     $requiredTables = [
@@ -657,7 +657,7 @@ function rx_table_migrations_verify_ready(array $dbInfo, ?array &$diagnostics = 
         ['wallet_ledger', 'fulfillment_key'],
     ];
     try {
-        $pdo = rx_database_connect($dbInfo);
+        $pdo ??= rx_database_connect($dbInfo);
         $requiredTablesLower = array_map('strtolower', $requiredTables);
         $tablePlaceholders = implode(',', array_fill(0, count($requiredTables), '?'));
         $tableQuery = $pdo->prepare("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE' AND LOWER(TABLE_NAME) IN ({$tablePlaceholders})");
@@ -702,7 +702,8 @@ function rx_table_migrations_verify_ready(array $dbInfo, ?array &$diagnostics = 
             $diagnostics['non_transactional_tables'][] = 'wallet_ledger:' . (string) $walletEngine;
         }
         if (!in_array('wallet_ledger', $diagnostics['missing_tables'], true)) {
-            require_once dirname(__DIR__, 2) . '/src/bootstrap.php';
+            $root = defined('REFACTORED_LEGACY_ROOT') ? REFACTORED_LEGACY_ROOT : dirname(__DIR__, 2);
+            require_once $root . '/src/bootstrap.php';
             $walletSchema = \Faoxima\Payments\Fulfillment\FulfillmentRuntime::rx_pf_wallet_schema_verify($pdo);
             if (empty($walletSchema['ok'])) {
                 $diagnostics['wallet_schema'][] = (string) ($walletSchema['reason'] ?? 'wallet_ledger schema verification failed');
@@ -794,10 +795,10 @@ function rx_run_table_migrations(string $rootDirectory, array $dbInfo): array
     return ['ok' => false, 'message' => $message];
 }
 
-function rx_ensure_admin_record(array $dbInfo, string $adminNumber): array
+function rx_ensure_admin_record(array $dbInfo, string $adminNumber, ?PDO $pdo = null): array
 {
     try {
-        $pdo = rx_database_connect($dbInfo);
+        $pdo ??= rx_database_connect($dbInfo);
         $tableExists = (bool) $pdo->query("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'admin'")->fetchColumn();
         if (!$tableExists) {
             $pdo->exec("CREATE TABLE IF NOT EXISTS `admin` (

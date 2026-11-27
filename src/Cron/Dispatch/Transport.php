@@ -142,8 +142,13 @@ final class Transport
             return ['success' => [], 'failed' => [], 'uncertain' => []];
         }
 
+        if (getenv('FAOXIMA_CLOUDFLARE') === '1') {
+            $useLoopback = true;
+            $loopback = ['scheme' => 'http', 'port' => 8080];
+        } else {
+            $loopback = $useLoopback ? self::detectLoopback() : null;
+        }
         if ($useLoopback) {
-            $loopback = self::detectLoopback();
             if (!is_array($loopback)) {
                 return ['success' => [], 'failed' => $tasks, 'uncertain' => []];
             }

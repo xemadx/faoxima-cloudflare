@@ -1,0 +1,16 @@
+PUBLIC_URL=https://faoxima.example.com/faoxima
+DB_HOST=db.example.com
+DB_PORT=3306
+DB_NAME=faoxima
+DB_USER=faoxima
+DB_PASS=replace-with-database-password
+FILES_DB_NAME=faoxima_files
+TELEGRAM_BOT_TOKEN=replace-with-bot-token
+TELEGRAM_ADMIN_ID=123456789
+TELEGRAM_BOT_USERNAME=replace_with_bot_username
+# TELEGRAM_WEBHOOK_SECRET=replace-with-a-random-secret
+# DB_CA_PEM="-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----"
+# REDIS_HOST=tls://redis.example.com
+# REDIS_PORT=6380
+# REDIS_PASSWORD=replace-with-redis-password
+# REDIS_DATABASE=0

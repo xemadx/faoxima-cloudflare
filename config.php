@@ -14,6 +14,18 @@ $redis_port     = '6379';
 $redis_password = '';
 $redis_database = '0';
 
+$rxCloudflare = getenv('FAOXIMA_CLOUDFLARE') === '1';
+if ($rxCloudflare) {
+    $dbname = (string) getenv('DB_NAME');
+    $usernamedb = (string) getenv('DB_USER');
+    $passworddb = (string) getenv('DB_PASS');
+    $dbhost = (string) getenv('DB_HOST');
+    $redis_host = (string) getenv('REDIS_HOST');
+    $redis_port = (string) (getenv('REDIS_PORT') ?: '6379');
+    $redis_password = (string) getenv('REDIS_PASSWORD');
+    $redis_database = (string) (getenv('REDIS_DATABASE') ?: '0');
+}
+
 $connect = null;
 $pdo     = null;
 $dsn     = '';
@@ -26,6 +38,10 @@ $options = [
 ];
 if (defined('PDO::MYSQL_ATTR_INIT_COMMAND')) {
     $options[\PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci, time_zone = '+03:30'";
+}
+if ($rxCloudflare && getenv('DB_TLS') !== '0') {
+    $options[\PDO::MYSQL_ATTR_SSL_CA] = getenv('SSL_CERT_FILE');
+    $options[\PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
 }
 
 if (!function_exists('rx_db_is_saturation_error')) {
@@ -101,7 +117,19 @@ if (!function_exists('rx_connect_mysqli')) {
         $retries = rx_db_connect_retries();
         $attempt = 0;
         while (true) {
-            $conn = @mysqli_connect($host, $username, $password, $database);
+            if (getenv('FAOXIMA_CLOUDFLARE') === '1') {
+                $conn = mysqli_init();
+                $flags = 0;
+                if (getenv('DB_TLS') !== '0') {
+                    $conn->ssl_set(null, null, getenv('SSL_CERT_FILE'), null, null);
+                    $flags = MYSQLI_CLIENT_SSL | MYSQLI_CLIENT_SSL_VERIFY_SERVER_CERT;
+                }
+                if (!@$conn->real_connect($host, $username, $password, $database, (int) getenv('DB_PORT'), null, $flags)) {
+                    $conn = null;
+                }
+            } else {
+                $conn = @mysqli_connect($host, $username, $password, $database);
+            }
             if ($conn instanceof mysqli) {
                 return $conn;
             }
@@ -297,6 +325,9 @@ if ($dbname !== '' && $usernamedb !== '') {
     }
 
     $dsn = 'mysql:host=' . $dbhostResolved . ';dbname=' . $dbname . ';charset=utf8mb4';
+    if ($rxCloudflare) {
+        $dsn .= ';port=' . (int) getenv('DB_PORT');
+    }
     try {
         $pdo = rx_connect_pdo($dsn, $usernamedb, $passworddb, $options);
     } catch (\PDOException $rxPdoError) {
@@ -322,6 +353,12 @@ $domainhosts                = '';
 $usernamebot                = '';
 $telegramCurlTimeout        = 10;
 $telegramStrictIpValidation = true;
+if ($rxCloudflare) {
+    $APIKEY = (string) getenv('TELEGRAM_BOT_TOKEN');
+    $adminnumber = (string) getenv('TELEGRAM_ADMIN_ID');
+    $domainhosts = (string) getenv('PUBLIC_URL');
+    $usernamebot = (string) getenv('TELEGRAM_BOT_USERNAME');
+}
 $domainhosts                = rtrim(preg_replace('#^https?://#', '', $domainhosts), '/');
 
 if (!defined('APP_ORIGIN') && $domainhosts !== '') {
